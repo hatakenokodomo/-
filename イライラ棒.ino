@@ -85,7 +85,7 @@ void time() {
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
-    Serial.println(String(result_time, 2)); //結果の表示
+    Serial.println(String(result_time, 5)); //結果の表示
   } else {
     while (digitalRead(L_limit) == HIGH) { //左に着くまでループ
       if (digitalRead(sens) == LOW && millis() - penalty_count >= penalty_interval) { //衝突時の処理
@@ -98,7 +98,7 @@ void time() {
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
-    Serial.println(String(result_time, 2)); //結果の表示
+    Serial.println(String(result_time, 5)); //結果の表示
   }
 }
 
