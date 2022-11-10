@@ -12,11 +12,13 @@ const int around_sw = 6; //周回モードスイッチ
 const int L_limit = 8; //左端のセンサー
 const int R_limit = 9; //右端のセンサー
 const int sens = 10; //メインのセンサー
+const int led = 12; //LED
 const int sp = 13; //スピーカー
 
 int time_limit = 60; //周回モードの制限時間
 int penalty_interval = 50; //ペナルティのカウント間隔
 
+int penalty_count; //ペナルティの時間計測
 int start_point; //開始位置
 float penalty; //ペナルティカウント
 float local_time; //開始時の内部時間
@@ -31,6 +33,7 @@ void setup() {
   pinMode(L_limit, INPUT);
   pinMode(R_limit, INPUT);
   pinMode(sens, INPUT);
+  pinMode(led, OUTPUT);
   pinMode(sp, OUTPUT);
 
   Serial.begin(9600); //シリアルの設定
@@ -52,6 +55,7 @@ void setup() {
 
 
 void loop() {
+  digitalWrite(led, HIGH);
   if (digitalRead(time_sw) == HIGH) { //タイムモードスイッチが押されたとき
     time(); //タイムモードの処理に飛ぶ
   } else if (digitalRead(around_sw) == HIGH) { //周回モードスイッチが押されたとき
@@ -71,22 +75,26 @@ void time() {
 
   if (start_point == 0) { //左から開始
     while (digitalRead(R_limit) == HIGH) { //右に着くまでループ
-      if (digitalRead(sens) == LOW) { //衝突時の処理
+      if (digitalRead(sens) == LOW && millis() - penalty_count >= penalty_interval) { //衝突時の処理
         penalty++; //ペナルティカウントの増加
         tone(sp, 440, penalty_interval + 10); //衝突音
-        delay(penalty_interval);
+        digitalWrite(led, LOW);
+        penalty_count = millis();
       }
+      digitalWrite(led, HIGH);
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
     Serial.println(String(result_time, 2)); //結果の表示
   } else {
     while (digitalRead(L_limit) == HIGH) { //左に着くまでループ
-      if (digitalRead(sens) == LOW) { //衝突時の処理
+      if (digitalRead(sens) == LOW && millis() - penalty_count >= penalty_interval) { //衝突時の処理
         penalty++; //ペナルティカウントの増加
         tone(sp, 440, penalty_interval + 10); //衝突音
-        delay(penalty_interval);
+        digitalWrite(led, LOW);
+        penalty_count = millis();
       }
+      digitalWrite(led, HIGH);
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
@@ -104,13 +112,14 @@ void around() {
   while (millis()  <= local_time + (time_limit - penalty) * 1000) { //時間がなくなったら終了
     if (start_point == 0) { //左から開始
       while (digitalRead(R_limit) == HIGH) { //右に着くまでループ
-        if (digitalRead(sens) == LOW) {  //衝突時の処理
+        if (digitalRead(sens) == LOW && millis() - penalty_count >= penalty_interval) {  //衝突時の処理
           penalty++; //ペナルティカウントの増加
           tone(sp, 440, penalty_interval + 10); //衝突音
           if (millis()  >= local_time + (time_limit - penalty) * 1000) { //時間がなくなったら終了
             break;
           }
-          delay(penalty_interval);
+          digitalWrite(led, LOW);
+          penalty_count = millis();
         }
       }
       tone(sp, 880, 50); //終了音
@@ -118,13 +127,14 @@ void around() {
       start_point = 1; //右
     } else {
       while (digitalRead(L_limit) == HIGH) { //左に着くまでループ
-        if (digitalRead(sens) == LOW) { //衝突時の処理
+        if (digitalRead(sens) == LOW && millis() - penalty_count >= penalty_interval) { //衝突時の処理
           penalty++; //ペナルティカウントの増加
           tone(sp, 440, penalty_interval + 10); //衝突音
           if (millis()  >= local_time + (time_limit - penalty) * 1000) { //時間が無くなったら終了
             break;
           }
-          delay(penalty_interval);
+          digitalWrite(led, LOW);
+          penalty_count = millis();
         }
       }
       tone(sp, 880, 50); //終了音
