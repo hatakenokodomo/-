@@ -34,7 +34,11 @@ void setup() {
   pinMode(sp, OUTPUT);
 
   Serial.begin(9600); //シリアルの設定
-
+  if (EEPROM.read(0xFF) != 0) {
+    EEPROM.write(0x00, 60);
+    EEPROM.write(0x01, 50);
+    EEPROM.write(0xFF, 0);
+  }
   time_limit = EEPROM.read(0x00);
   penalty_interval = EEPROM.read(0x01);
 
@@ -69,7 +73,7 @@ void time() {
     while (digitalRead(R_limit) == HIGH) { //右に着くまでループ
       if (digitalRead(sens) == LOW) { //衝突時の処理
         penalty++; //ペナルティカウントの増加
-        tone(sp, 440, penalty_interval = 10); //衝突音
+        tone(sp, 440, penalty_interval + 10); //衝突音
         delay(penalty_interval);
       }
     }
