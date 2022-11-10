@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #define elements 10
 String data_string; //シリアルで受け取る全文字列
 char *p; //文字列をカンマで分割するstrtok処理で使うポインタ
@@ -33,6 +34,16 @@ void setup() {
   pinMode(sp, OUTPUT);
 
   Serial.begin(9600); //シリアルの設定
+
+  time_limit = EEPROM.read(0x00);
+  penalty_interval = EEPROM.read(0x01);
+
+  Serial.print("  timer ");
+  Serial.print(time_limit);
+  Serial.println("秒");
+  Serial.print("  interval ");
+  Serial.print(penalty_interval);
+  Serial.println("ミリ秒");
 }
 
 
@@ -159,14 +170,15 @@ int command() {
     Serial.println("  help コマンド確認");
     Serial.println("  config 設定変更");
     Serial.println("  show 設定確認");
+    Serial.println("  reboot 再起動");
   } else if (data_array[0] == "config") {
     if (data_array[1] == "help") {
       Serial.println("  timer タイムモードの制限時間設定(1～255秒)");
       Serial.println("  interval ペナルティのカウント間隔設定(1～255ミリ秒)");
     } else if (data_array[1] == "timer") {
       if (data_array[2].toInt() >= 1 && data_array[2].toInt() <= 255) {
-        //ここにEEPROMの処理を入れる予定
-        time_limit = data_array[2].toInt();//EEPROMからの読み取り値を入れるように変更予定
+        EEPROM.write(0x00, data_array[2].toInt());//EEPROMに書き込む
+        time_limit = EEPROM.read(0x00);//EEPROMからの読み取り値を入れる
         Serial.print("  timer ");
         Serial.print(time_limit);
         Serial.println("秒に設定しました");
@@ -175,8 +187,8 @@ int command() {
       }
     } else if (data_array[1] == "interval") {
       if (data_array[2].toInt() >= 1 && data_array[2].toInt() <= 255) {
-        //ここにEEPROMの処理を入れる予定
-        penalty_interval = data_array[2].toInt();//EEPROMからの読み取り値を入れるように変更予定
+        EEPROM.write(0x01, data_array[2].toInt());//EEPROMに書き込む
+        penalty_interval = EEPROM.read(0x01);//EEPROMからの読み取り値を入れる
         Serial.print("  interval ");
         Serial.print(penalty_interval);
         Serial.println("ミリ秒に設定しました");
@@ -199,6 +211,10 @@ int command() {
     } else {
       Serial.println("Error:不正なコマンドです");
     }
+  } else if (data_array[0] == "reboot") {
+    delay(100);
+    void(* resetFunc) (void) = 0;
+    resetFunc();
   } else {
     if (data_array[0] != "") {
       Serial.println("Error:不正なコマンドです");
@@ -208,9 +224,9 @@ int command() {
 }
 
 
-//この部分ほぼコピペだからあんまり分かってなかったりする
+//この部分ほぼコピペだからよくわからん
 int serial_read() {
-  for (int i = 0; i < elements; i++) { //2要素名以降について、要素数分だけデータ配列に格納
+  for (int i = 0; i < elements; i++) { //データの初期化
     data_array[i] = "";
   }
   data_string = Serial.readStringUntil(0x0a); //シリアルデータを改行記号が現れるまで読み込む
