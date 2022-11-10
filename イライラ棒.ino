@@ -81,7 +81,9 @@ void time() {
         digitalWrite(led, LOW);
         penalty_count = millis();
       }
-      digitalWrite(led, HIGH);
+      if (millis() - penalty_count >= penalty_interval) {
+        digitalWrite(led, HIGH);
+      }
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
@@ -94,7 +96,9 @@ void time() {
         digitalWrite(led, LOW);
         penalty_count = millis();
       }
-      digitalWrite(led, HIGH);
+      if (millis() - penalty_count >= penalty_interval) {
+        digitalWrite(led, HIGH);
+      }
     }
     result_time = (millis() - local_time) / 1000 + penalty / 2; //結果の処理
     tone(sp, 880, 100); //終了音
@@ -121,6 +125,9 @@ void around() {
           digitalWrite(led, LOW);
           penalty_count = millis();
         }
+        if (millis() - penalty_count >= penalty_interval) {
+          digitalWrite(led, HIGH);
+        }
       }
       tone(sp, 880, 50); //終了音
       count++; //カウントの増加
@@ -135,6 +142,9 @@ void around() {
           }
           digitalWrite(led, LOW);
           penalty_count = millis();
+        }
+        if (millis() - penalty_count >= penalty_interval) {
+          digitalWrite(led, HIGH);
         }
       }
       tone(sp, 880, 50); //終了音
